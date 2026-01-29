@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Athena Index</title>
+<style>
+:root{
+  --bg:#0b0b0b;
+  --paper:#1a1a1a;
+  --ink:#e8e3d9;
+  --accent:#c2a76d;
+  --muted:#9a9488;
+}
+body{
+  margin:0;
+  font-family:Georgia, serif;
+  background:var(--bg);
+  color:var(--ink);
+}
+header{
+  text-align:center;
+  padding:60px 20px;
+  border-bottom:1px solid #333;
+}
+header h1{
+  font-size:3rem;
+  letter-spacing:2px;
+}
+header p{
+  max-width:650px;
+  margin:auto;
+  color:var(--muted);
+}
+.filters{
+  background:var(--paper);
+  padding:25px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:15px;
+  border-bottom:1px solid #333;
+}
+select,input[type=range]{
+  background:#111;
+  color:var(--ink);
+  border:1px solid #444;
+  padding:10px;
+  font-family:inherit;
+}
+.range-label{
+  font-size:.85rem;
+  color:var(--muted);
+}
+.opportunities{
+  padding:40px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:25px;
+}
+.card{
+  background:var(--paper);
+  padding:20px;
+  border:1px solid #333;
+  cursor:pointer;
+  transition:.2s;
+}
+.card:hover{
+  transform:translateY(-5px);
+}
+.card h3{
+  margin-top:0;
+  color:var(--accent);
+}
+.tag{
+  display:inline-block;
+  font-size:.7rem;
+  padding:4px 8px;
+  margin:4px 4px 0 0;
+  border:1px solid #555;
+  color:var(--muted);
+}
+footer{
+  text-align:center;
+  padding:30px;
+  font-size:.85rem;
+  color:var(--muted);
+}
+</style>
+</head>
+<body>
+<header>
+<h1>The Athena Index</h1>
+<p>A living archive of academic opportunities across disciplines, borders, and barriers.</p>
+</header>
+<div style="text-align:center; margin-bottom:15px;">
+<input type="text" id="search" placeholder="Search opportunities..." style="padding:10px; width:60%; max-width:400px; background:#111; color:#e8e3d9; border:1px solid #444;">
+</div>
+<div class="filters">
+<select id="subject">
+<option value="">Subject</option>
+<option>Science</option>
+<option>Maths</option>
+<option>Physics</option>
+<option>Chemistry</option>
+<option>Biology</option>
+<option>AI</option>
+<option>Computer Science</option>
+<option>Psychology</option>
+<option>Economics</option>
+<option>Architecture</option>
+<option>Engineering</option>
+<option>Philosophy</option>
+<option>Law</option>
+<option>Literature</option>
+<option>Political Science</option>
+<option>Environmental Science</option>
+<option>Medicine</option>
+<option>Business</option>
+</select>
+<select id="stream">
+<option value="">Stream</option>
+<option>STEM</option>
+<option>Arts</option>
+<option>Commerce</option>
+<option>Interdisciplinary</option>
+</select>
+<select id="type">
+<option value="">Type</option>
+<option>Competition</option>
+<option>Research</option>
+<option>Internship</option>
+<option>Program</option>
+<option>Scholarship</option>
+</select>
+<select id="grade">
+<option value="">Grade</option>
+<option>9th</option>
+<option>10th</option>
+<option>11th</option>
+<option>12th</option>
+</select>
+<select id="costType">
+<option value="">Cost</option>
+<option>Free</option>
+<option>Low Cost</option>
+<option>Paid</option>
+</select>
+<div>
+<label class="range-label">Max Cost ($): <span id="costValue">2000</span></label>
+<input type="range" id="costRange" min="0" max="2000" value="2000">
+</div>
+</div>
+<div class="opportunities" id="list"></div>
+<footer>
+Knowledge is not given. It is indexed.
+</footer>
+<script>
+const opportunities = [
+{t:"Regeneron ISEF",l:"https://www.societyforscience.org/isef/",s:["Science","Maths","Physics","Biology","Chemistry","AI","Computer Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"International Olympiad in Informatics",l:"https://ioinformatics.org",s:["Computer Science","Maths","AI"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"IMO",l:"https://www.imo-official.org",s:["Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"John Locke Essay Competition",l:"https://www.johnlockeinstitute.com",s:["Philosophy","Economics","Law","Political Science"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Earthwatch Institute Girls in Science Fellowship",l:"https://earthwatch.org",s:["Environmental Science","Biology"],st:"STEM",ty:"Research",c:"Free",p:0,g:["10th","11th","12th"]},
+{t:"Atlas Fellowship",l:"https://atlasinstitute.org/atlas-fellowship",s:["AI","Philosophy","Economics"],st:"Interdisciplinary",ty:"Program",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"NASA High School Internships",l:"https://www.nasa.gov/stem/internships",s:["Engineering","Physics","Computer Science"],st:"STEM",ty:"Internship",c:"Free",p:0,g:["10th","11th","12th"]},
+{t:"Anson L. Clark Scholars Program",l:"https://www.depts.ttu.edu/nsfp/clarkscholars/",s:["Science","Engineering"],st:"STEM",ty:"Research",c:"Free",p:0,g:["11th","12th"]},
+{t:"Garcia Summer Research Program",l:"https://www.stonybrook.edu/commcms/matsciresearch",s:["Science","Engineering"],st:"STEM",ty:"Research",c:"Free",p:0,g:["11th","12th"]},
+{t:"Lumiere Scholars Essay Award",l:"https://lumiere.education/scholars",s:["Literature","Philosophy","Economics"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"MIT THINK Scholars Program",l:"https://think.scripts.mit.edu",s:["Science","Engineering"],st:"STEM",ty:"Program",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Google Science Fair",l:"https://www.googlesciencefair.com",s:["Science","Engineering"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Odyssey of the Mind",l:"https://www.odysseyofthemind.com",s:["Engineering","Arts"],st:"Interdisciplinary",ty:"Competition",c:"Low Cost",p:50,g:["9th","10th","11th","12th"]},
+{t:"IRIS National Science Fair (India)",l:"https://www.intel.com/iris-fair",s:["Science","Engineering"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Technovation Girls",l:"https://technovation.org",s:["Computer Science","AI"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"ACT-SO Olympics",l:"https://naacp.org/act-so",s:["Science","Arts","Business"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"MCAD Anderson Summer Research Program",l:"https://www.mdanderson.org/education-and-research.html",s:["Biology","Medicine"],st:"STEM",ty:"Research",c:"Free",p:0,g:["11th","12th"]},
+{t:"MIT LLRISE Radar Program",l:"https://www.llrise.mit.edu",s:["Engineering","Physics"],st:"STEM",ty:"Program",c:"Free",p:0,g:["11th","12th"]},
+{t:"Fred Hutch Summer High School Internship",l:"https://www.fredhutch.org/education.html",s:["Biology","Medicine"],st:"STEM",ty:"Internship",c:"Paid",p:500,g:["11th","12th"]},
+{t:"Hampshire College Summer Studies in Math",l:"https://www.hcssi.org",s:["Maths"],st:"STEM",ty:"Program",c:"Paid",p:2000,g:["10th","11th","12th"]},
+{t:"UCLA Sci|Art Lab + Studio",l:"https://www.uclaartscience.edu",s:["Computer Science","Arts"],st:"Interdisciplinary",ty:"Program",c:"Paid",p:1500,g:["9th","10th","11th","12th"]},
+{t:"Forensic Sciences Mentoring Institute",l:"https://forensicscienceinstitute.org",s:["Science","Psychology"],st:"STEM",ty:"Program",c:"Paid",p:1500,g:["10th","11th","12th"]},
+{t:"Scholastic Art & Writing Awards",l:"https://www.artandwriting.org",s:["Literature","Arts"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Patricia Grodd Poetry Prize",l:"https://www.kenyonreview.org/poetry-prize",s:["Literature","Arts"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["10th","11th"]},
+{t:"Bank of America Student Leaders",l:"https://www.bankofamerica.com/student-leaders",s:["Business","Economics"],st:"Commerce",ty:"Program",c:"Free",p:0,g:["11th","12th"]},
+{t:"Amazon Future Engineers",l:"https://www.amazonfutureengineers.com",s:["Computer Science","AI"],st:"STEM",ty:"Program",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"National Merit Scholarship Competition",l:"https://www.nationalmerit.org",s:["Maths","Literature"],st:"Interdisciplinary",ty:"Scholarship",c:"Free",p:0,g:["11th"]},
+{t:"Coca-Cola Scholars Program",l:"https://www.coca-colascholarsfoundation.org",s:["Leadership","Business"],st:"Commerce",ty:"Scholarship",c:"Free",p:0,g:["12th"]},
+{t:"CERN Shadowing Experience",l:"https://home.cern",s:["Physics","Engineering"],st:"STEM",ty:"Program",c:"Free",p:0,g:["11th","12th"]},
+{t:"iGEM Synthetic Biology Competition",l:"https://competition.igem.org",s:["Biology","Engineering"],st:"STEM",ty:"Competition",c:"Low Cost",p:100,g:["9th","10th","11th","12th"]},
+{t:"NetSci High Research Program",l:"https://nslchallenge.org",s:["Science","Maths"],st:"STEM",ty:"Program",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"MIT RSI",l:"https://www.cee.org/programs/research-science-institute",s:["Science","Physics","Biology","AI","Computer Science"],st:"STEM",ty:"Research",c:"Free",p:0,g:["10th","11th"]},
+{t:"MIT PRIMES",l:"https://math.mit.edu/research/highschool/primes/",s:["Maths","Computer Science"],st:"STEM",ty:"Research",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"NASA SEES",l:"https://sees.larc.nasa.gov",s:["Engineering","Physics","Environmental Science"],st:"STEM",ty:"Research",c:"Free",p:0,g:["10th","11th"]},
+{t:"SIMR Stanford",l:"https://simr.stanford.edu",s:["Biology","Medicine","Psychology"],st:"STEM",ty:"Research",c:"Free",p:0,g:["11th","12th"]},
+{t:"NASA Internships",l:"https://intern.nasa.gov",s:["Engineering","Physics","AI","Computer Science"],st:"STEM",ty:"Internship",c:"Paid",p:1500,g:["11th","12th"]},
+{t:"Google Computer Science Summer Institute",l:"https://buildyourfuture.withgoogle.com/programs/computer-science-summer-institute",s:["Computer Science","AI"],st:"STEM",ty:"Program",c:"Free",p:0,g:["11th","12th"]},
+{t:"Girls Who Code Summer Immersion",l:"https://girlswhocode.com",s:["Computer Science","AI"],st:"STEM",ty:"Program",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Harvard SSP",l:"https://summer.harvard.edu",s:["Psychology","Economics","Computer Science","Literature"],st:"Interdisciplinary",ty:"Program",c:"Paid",p:2000,g:["11th","12th"]},
+{t:"Future City Competition",l:"https://www.futurecity.org",s:["Engineering","Maths","Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"International Greenwich Olympiad",l:"https://igolondon.co.uk",s:["Science","Engineering","Arts","Maths"],st:"Interdisciplinary",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"MathWorks Math Modeling Challenge (M³ Challenge)",l:"https://m3challenge.siam.org",s:["Maths","Engineering"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Young Scientist and Technology Exhibition",l:"https://www.stripeyste.ie",s:["Science","Engineering"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"NSS Space Settlement Contest",l:"https://space.nss.org/contest",s:["Engineering","Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"High School Mathematical Contest in Modeling (HiMCM)",l:"https://www.comap.com/undergraduate/contests/mcm/",s:["Maths","Engineering"],st:"STEM",ty:"Competition",c:"Low Cost",p:100,g:["9th","10th","11th","12th"]},
+{t:"Ocean Awareness Contest",l:"https://bowseat.org/ocean-awareness-contest",s:["Arts","Environmental Science","Writing"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Immerse Education Essay Competition",l:"https://www.immerse.education",s:["Literature","Philosophy","Social Science"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Horizon Academic Essay Prize",l:"https://www.horizoninspires.com/essay-prize",s:["Literature","Social Science"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"International Physics Olympiad (IPhO)",l:"https://www.ipho.org",s:["Physics"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["11th","12th"]},
+{t:"International Chemistry Olympiad (IChO)",l:"https://www.icho2025.org",s:["Chemistry"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["11th","12th"]},
+{t:"International Philosophy Olympiad",l:"https://www.fisp.org/olympiad",s:["Philosophy"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"National Personal Finance Challenge",l:"https://www.hsfpp.org/programs/npfc",s:["Economics","Business"],st:"Commerce",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Wharton Global High School Investment Competition",l:"https://globalhighschool.wharton.upenn.edu",s:["Economics","Business"],st:"Commerce",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"National High School Ethics Bowl",l:"https://www.ethicsbowl.org",s:["Philosophy","Social Science"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Academic WorldQuest",l:"https://www.worldaffairs.org/programs/worldquest",s:["History","Social Science"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Academic WorldQuest Global Strategy Competition",l:"https://www.worldaffairs.org/programs/worldquest",s:["Global Affairs","Social Science"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"National Economics Challenge",l:"https://www.councilforeconed.org/national-economics-challenge",s:["Economics","Business"],st:"Commerce",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"DECA International Career Development Conference",l:"https://www.deca.org",s:["Business","Economics"],st:"Commerce",ty:"Competition",c:"Paid",p:200,g:["9th","10th","11th","12th"]},
+{t:"Virtual Enterprises International Business Plan Competition",l:"https://veinternational.org",s:["Business"],st:"Commerce",ty:"Competition",c:"Paid",p:150,g:["9th","10th","11th","12th"]},
+{t:"Federal Reserve High School Challenge",l:"https://www.federalreservechallenge.org",s:["Economics","Social Science"],st:"Commerce",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Blue Ocean Virtual Pitch Competition",l:"https://www.veritasai.com",s:["Business","Economics"],st:"Commerce",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"World Schools Debating Championships (WSDC)",l:"https://www.wsdcDebate.org",s:["Philosophy","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:100,g:["9th","10th","11th","12th"]},
+{t:"Academic Pentathlon",l:"https://www.academicpentathlon.org",s:["Maths","Literature","History","Science"],st:"Interdisciplinary",ty:"Competition",c:"Low Cost",p:50,g:["9th","10th","11th","12th"]},
+{t:"International Bridge Building Contest",l:"https://www.internationalbridgebuilding.org",s:["Engineering","Maths"],st:"STEM",ty:"Competition",c:"Low Cost",p:100,g:["9th","10th","11th","12th"]},
+{t:"Aerial Drone Competition",l:"https://www.competitionsciences.org",s:["Engineering","STEM"],st:"STEM",ty:"Competition",c:"Low Cost",p:50,g:["9th","10th","11th","12th"]},
+{t:"AASM Sleep Is Essential Video Contest",l:"https://www.competitionsciences.org",s:["Arts","Media"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Microsoft FabCon Hackathon",l:"https://dublieu.com",s:["Computer Science","Engineering"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Penned Creative Writing Competition",l:"https://dublieu.com",s:["Literature","Writing"],st:"Arts",ty:"Competition",c:"Paid",p:50,g:["9th","10th","11th","12th"]},
+{t:"Elmbridge Literary Competition",l:"",s:["Literature","Writing"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"National Science Bowl",l:"https://science.osti.gov/nsb",s:["Science","Maths","Physics","Chemistry"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"United States Invitational Young Physicists Tournament",l:"https://en.wikipedia.org/wiki/United_States_Invitational_Young_Physicists_Tournament",s:["Physics","Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"CyberPatriot National Youth Cyber Defense Competition",l:"https://www.uscyberpatriot.org/",s:["Computer Science","AI","Engineering"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"VEX Robotics Competition",l:"https://www.vexrobotics.com",s:["Engineering","STEM"],st:"STEM",ty:"Competition",c:"Low Cost",p:200,g:["9th","10th","11th","12th"]},
+{t:"Best Robotics Challenge",l:"https://www.bestrobotics.org",s:["Engineering","STEM"],st:"STEM",ty:"Competition",c:"Low Cost",p:150,g:["9th","10th","11th","12th"]},
+{t:"NAQT High School National Championship Tournament",l:"https://www.naqt.com",s:["Social Science","Literature","Science","Maths"],st:"Interdisciplinary",ty:"Competition",c:"Paid",p:920,g:["9th","10th","11th","12th"]},
+{t:"International Public Policy Forum",l:"https://www.ippfdebate.org",s:["Social Science","Philosophy"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"World Scholar's Cup",l:"https://www.scholarscup.org",s:["Social Science","Science","Literature"],st:"Interdisciplinary",ty:"Competition",c:"Paid",p:200,g:["9th","10th","11th","12th"]},
+{t:"International Space Settlement Design Competition",l:"https://www.space-settlement.org",s:["Engineering","Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Conrad Challenge",l:"https://www.conradchallenge.org",s:["Engineering","Business","Science"],st:"Interdisciplinary",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Samsung Solve for Tomorrow",l:"https://www.solvefortomorrow.com",s:["Engineering","Science","Technology"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Stossel in the Classroom Contest",l:"https://stosselintheclassroom.org/contest",s:["Economics","Social Science"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"International Young Physicists’ Tournament",l:"https://www.iypt.org",s:["Physics","Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["11th","12th"]},
+{t:"International Biology Olympiad",l:"https://www.ibo-info.org",s:["Biology","Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["11th","12th"]},
+{t:"National Personal Finance Challenge",l:"https://www.hsfpp.org/programs/npfc",s:["Economics","Business"],st:"Commerce",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"HENDA Cup All‑Japan High School English Debate",l:"",s:["Social Science","Arts"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Junior State of America (JSA) State Debate Tournament",l:"https://jsa.org",s:["Social Science","Political Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:50,g:["9th","10th","11th","12th"]},
+{t:"High School Quiz Bowl League",l:"https://www.quizbowl.org",s:["Literature","Science","Social Science","Maths"],st:"Interdisciplinary",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+
+{t:"American Computer Science League (ACSL)",l:"https://www.acsl.org",s:["Computer Science","Maths"],st:"STEM",ty:"Competition",c:"Low Cost",p:50,g:["9th","10th","11th","12th"]},
+{t:"FIRST LEGO League Challenge",l:"https://www.firstlegoleague.org",s:["Engineering","STEM"],st:"STEM",ty:"Competition",c:"Low Cost",p:100,g:["9th","10th","11th","12th"]},
+{t:"High School Math League (HSML)",l:"https://mathleague.com",s:["Maths"],st:"STEM",ty:"Competition",c:"Low Cost",p:50,g:["9th","10th","11th","12th"]},
+{t:"The Concord Review – The Emerson Prize",l:"https://www.tcreview.org",s:["Literature","History"],st:"Arts",ty:"Competition",c:"Paid",p:70,g:["10th","11th","12th"]},
+{t:"NSPA Scholastic Press Association Contests",l:"https://studentpress.org/nspa",s:["Literature","Writing"],st:"Arts",ty:"Competition",c:"Paid",p:100,g:["9th","10th","11th","12th"]},
+{t:"Bow Seat Ocean Awareness Contest",l:"https://bowseat.org/ocean-awareness-contest",s:["Environmental Science","Arts"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Google Code Jam (High School)",l:"https://codingcompetitions.withgoogle.com/codejam",s:["Computer Science","Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["10th","11th","12th"]},
+{t:"Science Olympiad National Tournament",l:"https://www.soinc.org",s:["Science","Engineering"],st:"STEM",ty:"Competition",c:"Low Cost",p:100,g:["9th","10th","11th","12th"]},
+{t:"National History Day Competition",l:"https://www.nhd.org",s:["History","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:60,g:["9th","10th","11th","12th"]},
+{t:"Zero Robotics Competition",l:"https://zerorobotics.mit.edu",s:["Computer Science","Engineering","STEM"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"American Regions Mathematics League (ARML)",l:"https://arml.com",s:["Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"World Robot Olympiad (WRO)",l:"https://www.worldrobotolympiad.org",s:["Engineering","STEM"],st:"STEM",ty:"Competition",c:"Low Cost",p:100,g:["9th","10th","11th","12th"]},
+{t:"Microsoft Imagine Cup Junior",l:"https://imaginecup.microsoft.com",s:["Computer Science","AI"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Lockheed Martin Code Quest",l:"https://www.codequest.org",s:["Computer Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Bebras Computing Challenge",l:"https://bebras.org",s:["Computer Science","Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"International Young Physicists’ Tournament (IYPT)",l:"https://www.iypt.org",s:["Physics","Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["11th","12th"]},
+{t:"International Astronomy & Astrophysics Competition",l:"https://astrophycompetition.org",s:["Physics","Astronomy"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"NASA ‘Scientist for a Day’ Essay Contest",l:"https://science.nasa.gov/opportunities/think-science/scientist-for-a-day",s:["Writing","Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"World Schools Debating Championships Qualifier",l:"https://www.wsdcdebate.org",s:["Philosophy","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:100,g:["9th","10th","11th","12th"]},
+{t:"International Economics Olympiad",l:"https://ieo‑official.org",s:["Economics","Business"],st:"Commerce",ty:"Competition",c:"Free",p:0,g:["10th","11th","12th"]},
+{t:"United Nations Youth Assembly Competition",l:"https://unyouth.org",s:["Political Science","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:150,g:["9th","10th","11th","12th"]},
+{t:"Congressional App Challenge",l:"https://www.congressionalappchallenge.us",s:["Computer Science","Engineering"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"National High School Cyber League",l:"https://nhscl.org",s:["Computer Science","Cybersecurity"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"International STEM Olympiad (ISO)",l:"https://stemolympiad.org",s:["Science","Engineering","Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"National History Day Contest",l:"https://www.nhd.org",s:["History","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:60,g:["9th","10th","11th","12th"]},
+{t:"National Spelling Bee",l:"https://www.usaspell.org",s:["Literature","Language"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Math Modeling Challenge (HiMCM)",l:"https://www.comap.com/undergraduate/contests/mcm",s:["Maths","Engineering"],st:"STEM",ty:"Competition",c:"Low Cost",p:100,g:["9th","10th","11th","12th"]},
+{t:"American Mathematics Competitions (AMC 10/12)",l:"https://www.maa.org/math-competitions/amc10-12",s:["Maths"],st:"STEM",ty:"Competition",c:"Low Cost",p:30,g:["9th","10th","11th","12th"]},
+{t:"AIME (American Invitational Mathematics Examination)",l:"https://www.maa.org/math-competitions/aime",s:["Maths"],st:"STEM",ty:"Competition",c:"Low Cost",p:30,g:["10th","11th","12th"]},
+{t:"USAMTS (USA Mathematical Talent Search)",l:"https://www.usamts.org",s:["Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Harvard‑MIT Mathematics Tournament (HMMT)",l:"https://hmmt.org",s:["Maths"],st:"STEM",ty:"Competition",c:"Paid",p:100,g:["9th","10th","11th","12th"]},
+{t:"Math League National Contests",l:"https://mathleague.org",s:["Maths"],st:"STEM",ty:"Competition",c:"Low Cost",p:50,g:["9th","10th","11th","12th"]},
+{t:"American Rocketry Challenge",l:"https://rocketrychallenge.org",s:["Engineering","STEM"],st:"STEM",ty:"Competition",c:"Low Cost",p:80,g:["9th","10th","11th","12th"]},
+{t:"FIRST Robotics Competition (FRC)",l:"https://www.firstinspires.org/robotics/frc",s:["Engineering","STEM"],st:"STEM",ty:"Competition",c:"Paid",p:200,g:["9th","10th","11th","12th"]},
+{t:"FIRST Tech Challenge (FTC)",l:"https://www.firstinspires.org/robotics/ftc",s:["Engineering","STEM"],st:"STEM",ty:"Competition",c:"Low Cost",p:150,g:["9th","10th","11th","12th"]},
+{t:"National High School Mock Trial Championship",l:"https://en.wikipedia.org/wiki/National_High_School_Mock_Trial_Championship",s:["Law","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:75,g:["9th","10th","11th","12th"]},
+{t:"American Mock Trial Invitational",l:"https://en.wikipedia.org/wiki/American_Mock_Trial_Invitational",s:["Law","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:60,g:["9th","10th","11th","12th"]},
+{t:"United States Academic Decathlon",l:"https://www.usad.org",s:["Maths","Social Science","Science","Literature"],st:"Interdisciplinary",ty:"Competition",c:"Low Cost",p:80,g:["9th","10th","11th","12th"]},
+{t:"World of 8 Billion Video Contest",l:"https://www.worldof8billion.org/video-contest",s:["Social Science","Arts","Media"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Stockholm Junior Water Prize",l:"https://www.stockholmjuniorwaterprize.org",s:["Environmental Science","Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Diamond Challenge",l:"https://diamondchallenge.org",s:["Business","Economics"],st:"Commerce",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"C‑SPAN StudentCam Documentary Competition",l:"https://www.studentcam.org",s:["Media","Social Science"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"River of Words Poetry & Art Contest",l:"https://www.riverofwords.org",s:["Arts","Environmental Science"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Annual DNA Day Essay Contest",l:"https://www.ashg.org/education/dna-day",s:["Biology","Writing"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Math Olympiad for Elementary and Middle Schools (high school divisions vary)",l:"https://en.wikipedia.org/wiki/Mathematical_Olympiads_for_Elementary_and_Middle_Schools",s:["Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"USA Mathematical Olympiad (USAMO)",l:"https://www.maa.org/math-competitions/usamo",s:["Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["11th","12th"]},
+{t:"National Economics Challenge",l:"https://www.councilforeconed.org",s:["Economics","Business"],st:"Commerce",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"National Mock Trial Championship",l:"https://nationalmocktrial.org",s:["Law","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:75,g:["9th","10th","11th","12th"]},
+{t:"Ghana National Science & Maths Quiz",l:"https://en.wikipedia.org/wiki/National_Science_Quiz_(Ghana)",s:["Science","Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Mathcon Online Math Competition",l:"https://www.mathcon.org",s:["Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Caribou Math Contest",l:"https://cariboutests.com",s:["Maths"],st:"STEM",ty:"Competition",c:"Low Cost",p:20,g:["9th","10th","11th","12th"]},
+{t:"Genes in Space Challenge",l:"https://www.genesinspace.org",s:["Biology","STEM"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"ExploraVision STEM Competition",l:"https://www.exploravision.org",s:["STEM","Science","Engineering"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Envirothon Environmental Competition",l:"https://ncf‑envirothon.org",s:["Environmental Science","Biology"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"RoboRAVE International",l:"https://roborave.org",s:["Engineering","STEM"],st:"STEM",ty:"Competition",c:"Low Cost",p:100,g:["9th","10th","11th","12th"]},
+{t:"American Regions Mathematics League (different format)",l:"https://arml.com",s:["Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Mathematical Kangaroo",l:"https://www.mathkangaroo.org",s:["Maths"],st:"STEM",ty:"Competition",c:"Low Cost",p:20,g:["9th","10th","11th","12th"]},
+{t:"GENIUS Olympiad",l:"https://geniusolympiad.org",s:["Science","Engineering","Arts","Business","Robotics"],st:"Interdisciplinary",ty:"Competition",c:"Paid",p:100,g:["9th","10th","11th","12th"]},
+{t:"Breakthrough Junior Challenge",l:"https://breakthroughjuniorchallenge.org",s:["Science","Maths","Physics","Biology"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"International Essay Contest for Young People (Goi Peace Foundation)",l:"https://www.goipeace.or.jp/en/work/essay-contest/",s:["Literature","Social Science"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Harvard National Speech and Debate Tournament",l:"https://www.speechanddebate.org/harvard-nationals/",s:["Philosophy","Social Science"],st:"Arts",ty:"Competition",c:"Paid",p:80,g:["9th","10th","11th","12th"]},
+{t:"National Speech & Debate Tournament",l:"https://www.speechanddebate.org/nationals/",s:["Philosophy","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:50,g:["9th","10th","11th","12th"]},
+{t:"Copernicus Mathematics Olympiad",l:"https://copernicus.edu.pl/en/cmo/",s:["Maths"],st:"STEM",ty:"Competition",c:"Paid",p:25,g:["9th","10th","11th","12th"]},
+{t:"U.S.A. Mathematical Talent Search (USAMTS)",l:"https://www.usamts.org",s:["Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Purple Comet! Math Meet",l:"https://purplecomet.org",s:["Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Euclid Mathematics Contest",l:"https://cms.math.ca/Competitions/Other/Euclid",s:["Maths"],st:"STEM",ty:"Competition",c:"Low Cost",p:40,g:["11th","12th"]},
+{t:"International Biology Olympiad",l:"https://www.ibo-info.org",s:["Biology","Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["11th","12th"]},
+{t:"International Physics Olympiad",l:"https://www.ipho.org",s:["Physics"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["11th","12th"]},
+{t:"International Chemistry Olympiad",l:"https://www.icho.org",s:["Chemistry"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["11th","12th"]},
+{t:"Wharton Global High School Investment Competition",l:"https://globalhighschool.wharton.upenn.edu",s:["Economics","Business"],st:"Commerce",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"National Economics Challenge",l:"https://www.councilforeconed.org/national-economics-challenge",s:["Economics","Business"],st:"Commerce",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"International Public Policy Forum",l:"https://www.ippfdebate.org",s:["Philosophy","Social Science"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"World Scholar's Cup",l:"https://www.scholarscup.org",s:["Social Science","Science","Literature"],st:"Interdisciplinary",ty:"Competition",c:"Paid",p:200,g:["9th","10th","11th","12th"]},
+{t:"National High School Mock Trial Championship",l:"https://en.wikipedia.org/wiki/National_High_School_Mock_Trial_Championship",s:["Law","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:75,g:["9th","10th","11th","12th"]},
+{t:"American Regions Mathematics League (ARML)",l:"https://arml.com",s:["Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"American Mock Trial Invitational",l:"https://en.wikipedia.org/wiki/American_Mock_Trial_Invitational",s:["Law","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:60,g:["9th","10th","11th","12th"]},
+{t:"Caribou Math Contest",l:"https://cariboutests.com",s:["Maths"],st:"STEM",ty:"Competition",c:"Low Cost",p:20,g:["9th","10th","11th","12th"]},
+{t:"Code Jam by Google",l:"https://codingcompetitions.withgoogle.com/codejam",s:["Computer Science","Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["10th","11th","12th"]},
+{t:"National Science Bowl",l:"https://science.osti.gov/nsb",s:["Science","Maths","Physics","Chemistry"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"International Science Olympiad",l:"https://iso‑official.org",s:["Science"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Ghana National Science & Maths Quiz",l:"https://en.wikipedia.org/wiki/National_Science_Quiz_(Ghana)",s:["Science","Maths"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"EngineerGirl Writing Contest",l:"https://www.engineergirl.org/contest",s:["Writing","Engineering"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"International Visual Arts Competition (UNESCO)",l:"https://unesco.org/art-competition",s:["Arts"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"National Speech & Debate Association Tournament",l:"https://www.speechanddebate.org",s:["Philosophy","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:50,g:["9th","10th","11th","12th"]},
+{t:"Varsity Tutors National Academic Quiz Tournaments",l:"https://www.naqt.com",s:["Maths","Science","Literature","Social Science"],st:"Interdisciplinary",ty:"Competition",c:"Paid",p:100,g:["9th","10th","11th","12th"]},
+{t:"National History Day Contest",l:"https://www.nhd.org",s:["History","Social Science"],st:"Arts",ty:"Competition",c:"Low Cost",p:60,g:["9th","10th","11th","12th"]},
+{t:"International STEM & Maths Challenge",l:"https://www.stemchallenge.org",s:["Science","Maths","Engineering"],st:"STEM",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"World Languages Quiz Contest",l:"https://www.languagequiz.org",s:["Language","Arts"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Model United Nations Conference (Global)",l:"https://bestdelegate.com/model-united-nations",s:["Political Science","Social Science"],st:"Arts",ty:"Competition",c:"Paid",p:50,g:["9th","10th","11th","12th"]},
+{t:"International Research & Essays Competition",l:"https://www.ierscontest.org",s:["Writing","Research"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Academic WorldQuest",l:"https://www.worldaffairs.org/programs/worldquest",s:["History","Social Science"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"STEM Photography Competition",l:"https://www.photosem.org",s:["Science","Arts"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"International Humanities Challenge",l:"https://www.humanitiescompetition.org",s:["Social Science","Arts"],st:"Arts",ty:"Competition",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"StandOut Connect Internship",l:"https://standoutconnect.org/post/30-stem-internships-for-high-school-students",s:["STEM","Finance","Law","Medicine"],st:"Interdisciplinary",ty:"Internship",c:"Free/Paid",p:2000,g:["9th","10th","11th","12th"]},
+{t:"Princeton Plasma Physics Laboratory Internship",l:"https://www.pppl.gov/education/internships",s:["Physics","Engineering","STEM"],st:"STEM",ty:"Internship",c:"Free",p:0,g:["10th","11th","12th"]},
+{t:"Science and Engineering Apprenticeship Program (SEAP)",l:"https://www.onr.navy.mil/careers-education/students/seap",s:["Engineering","STEM","Physics"],st:"STEM",ty:"Program",c:"Free",p:0,g:["10th","11th","12th"]},
+{t:"Idaho National Laboratory (INL) Internship",l:"https://inl.gov/education/internships/",s:["Energy","STEM","Engineering"],st:"STEM",ty:"Internship",c:"Free/Paid",p:0,g:["10th","11th","12th"]},
+{t:"Veritas AI Internship Program",l:"https://pathwayinterns.com/internships",s:["Computer Science","AI","Data Science"],st:"STEM",ty:"Internship",c:"Free",p:0,g:["9th","10th","11th","12th"]},
+{t:"Air Force Research Laboratory (AFRL) Scholars",l:"https://internships.usajobs.gov/",s:["Engineering","STEM","Research"],st:"STEM",ty:"Internship",c:"Free/Paid",p:0,g:["10th","11th","12th"]},
+{t:"Hutton Junior Fisheries Biology Program",l:"https://afs.org/hutton-program/",s:["Biology","Environmental Science"],st:"STEM",ty:"Internship",c:"Free/Paid",p:0,g:["10th","11th","12th"]},
+{t:"Geosciences Bridge Program",l:"https://www.umes.edu/GEOSCIENCE/",s:["Geoscience","STEM"],st:"STEM",ty:"Program",c:"Paid",p:0,g:["12th"]},
+{t:"Broad Institute Summer Scholars Program",l:"https://www.broadinstitute.org/education/summer-scholars",s:["Genomics","Biology","STEM"],st:"STEM",ty:"Internship",c:"Free/Paid",p:0,g:["11th","12th"]}
+];
+
+const list = document.getElementById("list");
+const filters = document.querySelectorAll("select,input");
+const search = document.getElementById("search");
+
+function render(){
+  list.innerHTML="";
+  const sub=subject.value, st=stream.value, ty=type.value, ct=costType.value, max=costRange.value, gr=grade.value;
+  const results = opportunities.filter(o => (!sub || o.s.includes(sub)) && (!st || o.st === st) && (!ty || o.ty === ty) && (!ct || o.c === ct) && (o.p <= max) && (!gr || o.g.includes(gr)) && (!search.value || o.t.toLowerCase().includes(search.value.toLowerCase())) );
+  if(results.length === 0){
+    list.innerHTML="<p style='color:#9a9488'>No opportunities match your filters.</p>";
+    return;
+  }
+  results.forEach(o=>{
+    const d=document.createElement("div");
+    d.className="card";
+    d.onclick=()=>window.open(o.l,"_blank");
+    d.innerHTML = `<h3>${o.t}</h3>${o.s.map(x => `<span class="tag">${x}</span>`).join("")}<span class="tag">${o.st}</span><span class="tag">${o.ty}</span><span class="tag">${o.c}</span><span class="tag">$${o.p}</span>`;
+    list.appendChild(d);
+  });
+}
+
+filters.forEach(f=>f.addEventListener("input",render));
+search.addEventListener("input",render);
+costRange.oninput=e=>costValue.innerText=e.target.value;
+costType.addEventListener("change",()=>{
+  if(costType.value==="Free") costRange.value=0;
+  if(costType.value==="Low Cost") costRange.value=100;
+  if(costType.value==="Paid") costRange.value=2000;
+  costValue.innerText=costRange.value;
+  render();
+});
+render();
+</script>
+</body>
+</html>
